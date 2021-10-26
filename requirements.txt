@@ -1,0 +1,5 @@
+tensorflow
+numpy
+pandas
+pytest
+plotly
