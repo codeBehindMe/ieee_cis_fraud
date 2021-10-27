@@ -1,0 +1,7 @@
+tensorflow
+numpy
+pandas
+pytest
+plotly
+pyspark
+nbformat
