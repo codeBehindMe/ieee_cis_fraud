@@ -11,3 +11,4 @@ neptune-client
 neptune-xgboost
 psutil
 graphviz
+black
