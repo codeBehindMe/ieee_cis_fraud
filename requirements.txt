@@ -6,3 +6,8 @@ plotly
 pyspark
 nbformat
 xgboost
+sklearn
+neptune-client
+neptune-xgboost
+psutil
+graphviz

@@ -130,3 +130,5 @@ dmypy.json
 
 data/
 .devcontainer/
+*.token
+.neptune/
