@@ -1,7 +1,8 @@
 """Data interfacing classes"""
 import os
-from typing import Final, List
+from typing import Dict, Final, List
 import pandas as pd
+import plotly.express as px
 
 
 class DataSet:
@@ -37,9 +38,19 @@ class DataSet:
 
 
 class Statistics:
+    @staticmethod
+    def isFraud_percentage(d: pd.DataFrame):
+        counts = d.groupby("isFraud").size().to_dict()
+        return (counts[1] / (counts[0] + counts[1])) * 100
 
     @staticmethod
-    def set_is_fraud_ratio(*sets: List[pd.DataFrame]):
-        for i, s in enumerate(sets):
-            pass
-            
+    def isFraud_percentage_plot(**datasets: pd.DataFrame):
+        ratios: Dict = {}
+        for name, dataset in datasets.items():
+            ratios[name] = Statistics.isFraud_percentage(dataset)
+
+        fig = px.bar(
+            pd.DataFrame.from_dict(ratios, orient="index"), title="Fraud percentage"
+        )
+        fig.layout.showlegend = False
+        return fig
