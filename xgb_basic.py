@@ -6,8 +6,8 @@ from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import LabelEncoder
 from src.constants import SEED
 from src.data import Statistics
-from src.evaluation import scalar_evals, curve_evals
-from src.utils import XGBUtils
+from src.evaluation import scalar_evals, curve_evals, evaluate_and_launch_to_neptune
+from src.utils import XGBUtils, NeptuneUtils
 import xgboost as xgb
 
 # %%
@@ -53,12 +53,23 @@ eval_list = [(d_train, "train"), (d_test, "eval")]
 num_round = 10
 
 #%%
-bst = xgb.train(params=params, dtrain=d_train, num_boost_round=num_round)
+with NeptuneUtils.run() as run:
+    run["model_columns"] = model_columns
+    run["params"] = params
+    run["num_round"] = 10
+    bst = xgb.train(params=params, dtrain=d_train, num_boost_round=num_round)
+    train_probas = bst.predict(d_train)
+    train_preds = np.where(bst.predict(d_train) > 0.5, 1, 0)
+    evaluate_and_launch_to_neptune(run, train_df["isFraud"], train_preds,train_probas,"train")
+
+    test_probas = bst.predict(d_test)
+    test_preds = np.where(bst.predict(d_test) > 0.5, 1, 0)
+    evaluate_and_launch_to_neptune(run, test_df["isFraud"], test_preds, test_probas, "test")
+
 # %%
 train_metrics = scalar_evals(
     train_df["isFraud"], np.where(bst.predict(d_train) > 0.5, 1, 0)
 )
-train_metrics
 # %%
 eval_metrics = scalar_evals(
     test_df["isFraud"], np.where(bst.predict(d_test) > 0.5, 1, 0)
