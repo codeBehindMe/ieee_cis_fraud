@@ -9,6 +9,7 @@ from src.data import Statistics
 from src.evaluation import scalar_evals, curve_evals, evaluate_and_launch_to_neptune
 from src.utils import XGBUtils, NeptuneUtils
 import xgboost as xgb
+from neptune.new.integrations.xgboost import NeptuneCallback
 
 # %%
 data_set = DataSet("data")
@@ -19,8 +20,16 @@ train_data = data_set.get_train_transaction()
 # %%
 Statistics.isFraud_percentage_plot(train=train_data)
 # %%
-model_columns = ["TransactionAmt", "ProductCD", "card1", "card4", "isFraud"]
-train_subset = train_data[model_columns]
+model_columns = [
+    "TransactionAmt",
+    "ProductCD",
+    "card1",
+    "card2",
+    "card3",
+    "card4",
+    "isFraud",
+]
+train_subset = train_data[model_columns].dropna(axis=0, how="any")
 # %%
 train_subset["ProductCD"] = LabelEncoder().fit_transform(train_subset["ProductCD"])
 
@@ -28,7 +37,7 @@ train_subset["ProductCD"] = LabelEncoder().fit_transform(train_subset["ProductCD
 train_subset["card4"] = LabelEncoder().fit_transform(train_subset["card4"])
 # %%
 train_df, test_df = train_test_split(
-    train_subset[model_columns], random_state=SEED, stratify=train_data["isFraud"]
+    train_subset[model_columns], random_state=SEED, stratify=train_subset["isFraud"]
 )
 # %%
 is_fraud_plot = Statistics.isFraud_percentage_plot(train=train_df, test=test_df)
@@ -57,14 +66,26 @@ with NeptuneUtils.run() as run:
     run["model_columns"] = model_columns
     run["params"] = params
     run["num_round"] = 10
-    bst = xgb.train(params=params, dtrain=d_train, num_boost_round=num_round)
+
+    xgb_callback = NeptuneCallback(run, log_tree=[0, 1, 2, 3, 4])
+    bst = xgb.train(
+        params=params,
+        dtrain=d_train,
+        num_boost_round=num_round,
+        callbacks=[xgb_callback],
+        evals=eval_list,
+    )
     train_probas = bst.predict(d_train)
     train_preds = np.where(bst.predict(d_train) > 0.5, 1, 0)
-    evaluate_and_launch_to_neptune(run, train_df["isFraud"], train_preds,train_probas,"train")
+    evaluate_and_launch_to_neptune(
+        run, train_df["isFraud"], train_preds, train_probas, "train"
+    )
 
     test_probas = bst.predict(d_test)
     test_preds = np.where(bst.predict(d_test) > 0.5, 1, 0)
-    evaluate_and_launch_to_neptune(run, test_df["isFraud"], test_preds, test_probas, "test")
+    evaluate_and_launch_to_neptune(
+        run, test_df["isFraud"], test_preds, test_probas, "test"
+    )
 
 # %%
 train_metrics = scalar_evals(

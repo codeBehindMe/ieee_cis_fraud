@@ -77,8 +77,11 @@ def plot_confusion_matrix(cfm: np.array):
     """
 
     return ff.create_annotated_heatmap(
-        cfm, x=["Predicted Not Fraud", "Predicted Fraud"], y = ["True Not Fraud", "True Fraud"]
+        cfm,
+        x=["Predicted Not Fraud", "Predicted Fraud"],
+        y=["True Not Fraud", "True Fraud"],
     )
+
 
 def evaluate_and_launch_to_neptune(run, y_true, y_pred, probas, set_name):
     """
