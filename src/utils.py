@@ -31,7 +31,7 @@ class NeptuneUtils:
 
     @staticmethod
     @contextmanager
-    def run(token_path: str = "."):
+    def run(token_path: str = "./neptune.token"):
         """
         Creates a a neptune run context
         """

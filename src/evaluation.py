@@ -1,6 +1,7 @@
 from typing import Dict
 import pandas as pd
 import numpy as np
+import plotly.figure_factory as ff
 from sklearn.metrics import (
     confusion_matrix,
     f1_score,
@@ -75,13 +76,9 @@ def plot_confusion_matrix(cfm: np.array):
     Plot confusion matrix
     """
 
-    return px.imshow(
-        cfm,
-        labels=dict(x="predicted", y="true"),
-        x=["Not Fraud", "Fraud"],
-        y=["Not Fraud", "Fraud"],
+    return ff.create_annotated_heatmap(
+        cfm, x=["Predicted Not Fraud", "Predicted Fraud"], y = ["True Not Fraud", "True Fraud"]
     )
-
 
 def evaluate_and_launch_to_neptune(run, y_true, y_pred, probas, set_name):
     """
@@ -93,7 +90,7 @@ def evaluate_and_launch_to_neptune(run, y_true, y_pred, probas, set_name):
     for k, v in scalar_results.items():
 
         if k == "confusion_matrix":
-            NeptuneUtils.upload_plotly(run, f"{set_name}/{k}", v)
+            NeptuneUtils.upload_plotly(run, f"{set_name}/{k}", plot_confusion_matrix(v))
         else:
             run[f"{set_name}/{k}"] = v
 
