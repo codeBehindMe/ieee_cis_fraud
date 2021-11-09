@@ -2,7 +2,9 @@
 import os
 from typing import Dict, Final, List
 import pandas as pd
+from pandas.core.arrays.sparse import dtype
 import plotly.express as px
+from sklearn.preprocessing import LabelEncoder
 
 
 class DataSet:
@@ -75,3 +77,24 @@ class FeatureFilters:
         keep_columns = df_na_perc[(df_na_perc <= null_perc)].index.tolist()
 
         return df[keep_columns]
+
+
+class FeatureEncoders:
+
+    @staticmethod
+    def encode_string_columns(df: pd.DataFrame) -> pd.DataFrame:
+        """
+        Encodes string columns in dataframe.
+        """
+
+        _df = df.copy(deep=True)
+
+        type_cast_cols = []
+        for c, t in _df.dtypes.to_dict().items():
+            if t == "object":
+                _df[c].update(pd.Series(LabelEncoder().fit_transform(_df[c])))
+                type_cast_cols.append(c)
+
+        _df = _df.astype({x : "int" for x in type_cast_cols})
+
+        return _df
