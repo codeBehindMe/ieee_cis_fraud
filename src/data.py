@@ -54,3 +54,24 @@ class Statistics:
         )
         fig.layout.showlegend = False
         return fig
+
+
+class FeatureFilters:
+    @staticmethod
+    def remove_cols_with_nulls(
+        df: pd.DataFrame, null_perc: float = 0.0
+    ) -> pd.DataFrame:
+        """
+        Removes columns whose data contains nulls above a certain threshold.
+        """
+
+        if null_perc < 0 or null_perc > 1:
+            raise ValueError(
+                f"null perc needs to be between 0 and 1, recieved {null_perc}"
+            )
+
+        df_na_perc: pd.Series = df.isna().sum(axis=0) / df.shape[0]
+
+        keep_columns = df_na_perc[(df_na_perc <= null_perc)].index.tolist()
+
+        return df[keep_columns]
