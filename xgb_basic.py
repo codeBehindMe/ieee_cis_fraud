@@ -10,6 +10,8 @@ from src.evaluation import scalar_evals, curve_evals, evaluate_and_launch_to_nep
 from src.utils import XGBUtils, NeptuneUtils
 import xgboost as xgb
 from neptune.new.integrations.xgboost import NeptuneCallback
+from src.data import FeatureFilters
+from src.data import FeatureEncoders
 
 # %%
 data_set = DataSet("data")
@@ -29,15 +31,17 @@ model_columns = [
     "card4",
     "isFraud",
 ]
-train_subset = train_data[model_columns].dropna(axis=0, how="any")
 # %%
-train_subset["ProductCD"] = LabelEncoder().fit_transform(train_subset["ProductCD"])
+# Filter columns  based on number of NAs. Let's pick everything that has NA ratio less than 15%
+train_subset = FeatureFilters.remove_cols_with_nulls(train_data,0.15)
+
+train_subset = train_subset.dropna(axis=0, how="any").reset_index(drop=True)
 
 #%%
-train_subset["card4"] = LabelEncoder().fit_transform(train_subset["card4"])
+train_subset = FeatureEncoders.encode_string_columns(train_subset)
 # %%
 train_df, test_df = train_test_split(
-    train_subset[model_columns], random_state=SEED, stratify=train_subset["isFraud"]
+    train_subset, random_state=SEED, stratify=train_subset["isFraud"]
 )
 # %%
 is_fraud_plot = Statistics.isFraud_percentage_plot(train=train_df, test=test_df)
