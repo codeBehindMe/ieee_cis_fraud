@@ -33,7 +33,7 @@ model_columns = [
 ]
 # %%
 # Filter columns  based on number of NAs. Let's pick everything that has NA ratio less than 15%
-train_subset = FeatureFilters.remove_cols_with_nulls(train_data,0.15)
+train_subset = FeatureFilters.remove_cols_with_nulls(train_data,0.20)
 
 train_subset = train_subset.dropna(axis=0, how="any").reset_index(drop=True)
 
