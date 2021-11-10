@@ -80,7 +80,6 @@ class FeatureFilters:
 
 
 class FeatureEncoders:
-
     @staticmethod
     def encode_string_columns(df: pd.DataFrame) -> pd.DataFrame:
         """
@@ -95,6 +94,6 @@ class FeatureEncoders:
                 _df[c].update(pd.Series(LabelEncoder().fit_transform(_df[c])))
                 type_cast_cols.append(c)
 
-        _df = _df.astype({x : "int" for x in type_cast_cols})
+        _df = _df.astype({x: "int" for x in type_cast_cols})
 
         return _df
