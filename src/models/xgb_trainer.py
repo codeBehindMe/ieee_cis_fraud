@@ -49,7 +49,7 @@ class XGBTrainer:
         d_train = XGBUtils.create_d_matrix(train_df, self.label_column)
         d_test = XGBUtils.create_d_matrix(test_df, self.label_column)
 
-        eval_list = [(d_train, "train", (d_test, "eval"))]
+        eval_list = [(d_train, "train"), (d_test, "eval")]
 
         with NeptuneUtils.run() as run:
             run["data/train/columns"] = train_df.columns.values.tolist()
@@ -89,7 +89,9 @@ class XGBTrainer:
                 run, test_df[self.label_column], test_preds, test_probas, "test"
             )
 
-            # We return test_roc_auc since it's used in the kaggle competition as the score 
+            # We return test_roc_auc since it's used in the kaggle competition as the score
             # thus we could use it as the optimisation objective in the future for hp tuning.
-            test_roc_auc = curve_evals(test_df[self.label_column],test_probas)["roc_auc"]
+            test_roc_auc = curve_evals(test_df[self.label_column], test_probas)[
+                "roc_auc"
+            ]
             return test_roc_auc
