@@ -70,6 +70,7 @@ with NeptuneUtils.run() as run:
     run["model_columns"] = model_columns
     run["params"] = params
     run["num_round"] = 10
+    run["train/isFraudPercentage"] = Statistics.isFraud_percentage(train_df)
 
     xgb_callback = NeptuneCallback(run, log_tree=[0, 1, 2, 3, 4])
     bst = xgb.train(
@@ -85,6 +86,7 @@ with NeptuneUtils.run() as run:
         run, train_df["isFraud"], train_preds, train_probas, "train"
     )
 
+    run["test/isFraudPercentage"] = Statistics.isFraud_percentage(test_df)
     test_probas = bst.predict(d_test)
     test_preds = np.where(bst.predict(d_test) > 0.5, 1, 0)
     evaluate_and_launch_to_neptune(
